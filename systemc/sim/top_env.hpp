@@ -1,13 +1,12 @@
-#ifndef testbench_H
-#define testbench_H
+#ifndef TESTBENCH_H
+#define TESTBENCH_H
 
 #include "systemc.h"
 #include "verilated_vcd_sc.h"
-#include <iostream>
 #include <stdint.h>
 #include <stdio.h>
-#include <string>
 #include <verilated.h>
+#include <cstdlib>
 
 template <class MODULE> class TOP_ENV : sc_core::sc_module {
 public:
@@ -68,20 +67,17 @@ public:
   }
   /* clang-format on */
 
-  ~TOP_ENV() {
-    close_trace();
-  }
+  ~TOP_ENV() { close_trace(); }
 
-  virtual void reset(void){
+  virtual void reset(void) {
     rst = 1;
-    sc_start(10*T);
+    sc_start(10 * T);
     rst = 0;
   }
 
-  virtual void start_sim(void){
+  virtual void start_sim(void) {
     reset();
     sc_start(Tsim);
-
   }
 
   virtual void open_trace(const char *vcdname) {

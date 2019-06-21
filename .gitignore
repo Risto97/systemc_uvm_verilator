@@ -164,3 +164,6 @@ dmypy.json
 ##### SystemVerilog and Verilator #########
 *.vcd
 obj_dir/
+tags
+.elf
+obj-pc/

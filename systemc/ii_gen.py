@@ -26,5 +26,5 @@ ii_gen(din=drv(t=din_t, seq=[]), frame_size=(5, 5))
 
 # bind('svgen/debug_intfs', [''])
 bind('svgen/spy_connection_template', signal_spy_connect_t)
-svgen('/ii_gen', outdir="build", wrapper=True)
+svgen('/ii_gen', outdir="rtl/build", wrapper=True)
 copy_svlib()
