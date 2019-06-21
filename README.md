@@ -1,3 +1,2 @@
 ===========================================
-gearsSystemC Testbench nvironment Generator
-===========================================
+gearsSystemC Testbench Environment Generator
