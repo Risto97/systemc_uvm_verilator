@@ -2,25 +2,33 @@
 #define DTI_DRIVER_HPP
 
 #include "systemc.h"
-#include <iostream>
 #include <stdint.h>
 #include <stdio.h>
 #include <tlm>
 #include <tlm_utils/simple_target_socket.h>
+#include "intf.hpp"
 #include <sstream>
 
-// template <class data_T> struct dti_vif {
-//   bool dti_valid;
-//   bool dti_ready;
-//   data_T dti_data;
-// };
+template <class data_T> struct seq_item {
+  bool valid;
+  bool ready;
+  data_T data;
+};
 
+// template <class data_T>
 class dti_drv :
   public sc_core::sc_module
 {
 public:
-  // dti_vif<sc_bv<32> > intf;
-  dti_drv(sc_core::sc_module_name);
+  seq_item<sc_bv<32> > item;
+  dti_intf *intf;
+
+
+  dti_drv(sc_core::sc_module_name, dti_intf *intf_ext);
+
+  ~dti_drv(){
+  }
+
 	tlm_utils::simple_target_socket<dti_drv> soc;
 
 protected:

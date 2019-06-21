@@ -6,11 +6,12 @@ using namespace tlm;
 using namespace std;
 using namespace sc_dt;
 
-dti_drv::dti_drv(sc_module_name name) :
+dti_drv::dti_drv(sc_module_name name, dti_intf *intf_ext) :
   sc_module(name),
   soc("soc")
 {
   soc.register_b_transport(this, &dti_drv::b_transport);
+  intf = new dti_intf(intf_ext);
 }
 
 void dti_drv::b_transport(pl_t& pl, sc_time& offset)
@@ -28,6 +29,9 @@ void dti_drv::b_transport(pl_t& pl, sc_time& offset)
             val = *((sc_uint<8>*)pl.get_data_ptr());
             pl.set_response_status( TLM_OK_RESPONSE );
             msg(pl);
+            std::cout << "Val: " << val << std::endl;
+            *(intf->dti_data) = val;
+            *(intf->dti_valid) = 1;
             break;
           }
         case TLM_READ_COMMAND:

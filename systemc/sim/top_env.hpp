@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <verilated.h>
 #include <cstdlib>
+#include "intf.hpp"
+#include "dti_driver.hpp"
+#include "sequencer.hpp"
 
 template <class MODULE> class TOP_ENV : sc_core::sc_module {
 public:
@@ -17,6 +20,15 @@ public:
 
   /* Signal Declarations
    */
+
+  dti_intf *din;
+  dti_intf *ii_s;
+
+  dti_drv *din_drv;
+  // dti_drv *ii_s_drv;
+
+  sequencer *din_seq;
+  // sequencer *ii_s_seq;
 
   sc_clock clk;
   sc_signal<bool> rst;
@@ -48,9 +60,7 @@ public:
       ii_s_ready("ii_s_ready"),
       ii_s_data("ii_s_data")
   {
-    din_valid = 1;
     ii_s_ready = 1;
-    din_data = 5;
 
     top_v.clk(clk);
     top_v.rst(rst);
@@ -60,14 +70,41 @@ public:
     top_v.ii_s_valid(ii_s_valid);
     top_v.ii_s_ready(ii_s_ready);
     top_v.ii_s_data(ii_s_data);
+
+    din = new dti_intf(&din_ready, &din_valid, &din_data);
+    ii_s = new dti_intf(&ii_s_ready, &ii_s_valid, &ii_s_data);
+
+    din_drv = new dti_drv("din_drv", din);
+    // ii_s_drv = new dti_drv("ii_s_drv", ii_s);
+
+    din_seq = new sequencer("din_seq");
+    // ii_s_seq = new sequencer("ii_s_seq");
+
+    din_seq->isoc.bind(din_drv->soc);
+    // ii_s_seq->isoc.bind(ii_s_drv->soc);
+
     m_trace = new VerilatedVcdSc;
 
+    SC_METHOD(monitor);
+    sensitive << clk.posedge_event();
 
     Verilated::traceEverOn(true);
   }
   /* clang-format on */
 
-  ~TOP_ENV() { close_trace(); }
+  ~TOP_ENV() {
+    close_trace();
+    delete din;
+    delete ii_s;
+    delete din_drv;
+    // delete ii_s_drv;
+    delete din_seq;
+    // delete ii_s_seq;
+  }
+
+  void monitor(){
+    std::cout << "@_" << sc_time_stamp() << "_ " << *(din->dti_data) << std::endl;
+  }
 
   virtual void reset(void) {
     rst = 1;

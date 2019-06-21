@@ -20,7 +20,7 @@ void sequencer::test()
 	sc_time loct;
 	tlm_utils::tlm_quantumkeeper qk;
 
-	for (int i = 0; i != 10; ++i)
+	for (int i = 0; i != 100; ++i)
     {
       sc_uint<8> val = i+1;
       pl.set_address(0);
@@ -32,6 +32,6 @@ void sequencer::test()
       qk.set_and_sync(loct);
       // msg(pl);
 
-      loct += sc_time(5, SC_NS);
+      loct = sc_time(5, SC_NS);
     }
 }
