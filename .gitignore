@@ -167,3 +167,4 @@ obj_dir/
 tags
 .elf
 obj-pc/
+*.tmp

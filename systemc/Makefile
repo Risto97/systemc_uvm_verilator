@@ -1,25 +1,31 @@
-export SYSTEMC ?= /tools/systemc/
-export SYSTEMC_ARCH = linux64
+TOP_MOD = wrap_ii_gen
+TOP_FN = $(TOP_MOD).sv
 
-TOP_MODULE = wrap_ii_gen
-TB_FN = tb.cpp
-VERILATOR_FLAGS = -sc -CFLAGS -fpic -LDFLAGS -Wno-fatal
-TRACE_FLAGS = --trace -no-trace-params --trace-structs
-SYSTEMC_INCL = -I/tools/systemc/include
-# HDRS = $(wildcard *.hpp)
-# SRCS = $(wildcard *.cpp)
-SVLIB = -I/tools/git_repos/pygears/pygears/common/svlib -I/tools/git_repos/pygears/pygears/cookbook/svlib -I/tools/work/cascade_classifier/cascade_classifier/pygears_impl/design/gears/svlib
+all: svgen verilate testbench
 
-default: clean
-	-verilator $(VERILATOR_FLAGS) $(SYSTEMC_INCL) -Ibuild/svlib $(SVLIB) -clk clk --top-module $(TOP_MODULE) $(TRACE_FLAGS) build/*.sv dti.sv --exe main.cpp dti_driver.hpp dti_driver.cpp sequencer.cpp sequencer.hpp
+python_exec:
+	python ii_gen.py
 
-run: default
-	make -j -C obj_dir/ -f V$(TOP_MODULE).mk V$(TOP_MODULE)
-	obj_dir/V$(TOP_MODULE)
+rmline: python_exec
+	$(shell bash -c 'cat rtl/build/$(TOP_FN) | sed 1d > $(TOP_MOD).tmp')
+	$(shell bash -c 'mv $(TOP_MOD).tmp rtl/build/$(TOP_FN)')
 
-wave: run
-	gtkwave top.vcd
+svgen: python_exec rmline
 
+verilate: svgen
+	make -C rtl/ all
+
+testbench: verilate
+	make -C sim/ all
+
+test: testbench
+	make -C sim/ test
+
+wave: test
+	make -C sim/ wave
+
+.PHONY: clean
 clean:
-	-rm -rf obj_dir
-	-rm top.vcd
+	rm -rf rtl/build
+	make -C rtl/ clean
+	make -C sim/ clean
