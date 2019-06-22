@@ -12,7 +12,7 @@
 
 int sc_main(int argc, char **argv) {
   Verilated::commandArgs(argc, argv);
-  TOP_ENV<Vwrap_ii_gen> top_obj("aaaa", "mod1", 500);
+  TOP_ENV<Vwrap_ii_gen> top_obj("aaaa", "mod1", 1000);
 
   // dti_drv drv1("drv1");
   // sequencer seq("sequencer1");

@@ -22,13 +22,13 @@ public:
    */
 
   dti_intf *din;
-  dti_intf *ii_s;
+  dti_intf *dout;
 
   dti_drv *din_drv;
-  // dti_drv *ii_s_drv;
+  // dti_drv *dout_drv;
 
   sequencer *din_seq;
-  // sequencer *ii_s_seq;
+  // sequencer *dout_seq;
 
   sc_clock clk;
   sc_signal<bool> rst;
@@ -37,9 +37,9 @@ public:
   sc_signal<bool> din_valid;
   sc_signal<uint32_t> din_data;
 
-  sc_signal<bool> ii_s_valid;
-  sc_signal<bool> ii_s_ready;
-  sc_signal<uint32_t> ii_s_data;
+  sc_signal<bool> dout_valid;
+  sc_signal<bool> dout_ready;
+  sc_signal<uint32_t> dout_data;
 
   /// ***************************************//////////
 
@@ -56,37 +56,39 @@ public:
       din_ready("din_ready"),
       din_valid("din_valid"),
       din_data("din_data"),
-      ii_s_valid("ii_s_valid"),
-      ii_s_ready("ii_s_ready"),
-      ii_s_data("ii_s_data")
+      dout_valid("dout_valid"),
+      dout_ready("dout_ready"),
+      dout_data("dout_data")
   {
-    ii_s_ready = 1;
+    dout_ready = 1;
 
     top_v.clk(clk);
     top_v.rst(rst);
     top_v.din_ready(din_ready);
     top_v.din_valid(din_valid);
     top_v.din_data(din_data);
-    top_v.ii_s_valid(ii_s_valid);
-    top_v.ii_s_ready(ii_s_ready);
-    top_v.ii_s_data(ii_s_data);
+    top_v.dout_valid(dout_valid);
+    top_v.dout_ready(dout_ready);
+    top_v.dout_data(dout_data);
 
     din = new dti_intf(&din_ready, &din_valid, &din_data);
-    ii_s = new dti_intf(&ii_s_ready, &ii_s_valid, &ii_s_data);
+    dout = new dti_intf(&dout_ready, &dout_valid, &dout_data);
 
     din_drv = new dti_drv("din_drv", din);
-    // ii_s_drv = new dti_drv("ii_s_drv", ii_s);
+    din_drv->clk(clk);
+    din_drv->rst(rst);
+    // dout_drv = new dti_drv("dout_drv", dout);
 
     din_seq = new sequencer("din_seq");
-    // ii_s_seq = new sequencer("ii_s_seq");
+    // dout_seq = new sequencer("dout_seq");
 
     din_seq->isoc.bind(din_drv->soc);
-    // ii_s_seq->isoc.bind(ii_s_drv->soc);
+    // dout_seq->isoc.bind(dout_drv->soc);
 
     m_trace = new VerilatedVcdSc;
 
-    SC_METHOD(monitor);
-    sensitive << clk.posedge_event();
+    // SC_METHOD(monitor);
+    // sensitive << clk.posedge_event();
 
     Verilated::traceEverOn(true);
   }
@@ -95,15 +97,20 @@ public:
   ~TOP_ENV() {
     close_trace();
     delete din;
-    delete ii_s;
+    delete dout;
     delete din_drv;
-    // delete ii_s_drv;
+    // delete dout_drv;
     delete din_seq;
-    // delete ii_s_seq;
+    // delete dout_seq;
   }
 
   void monitor(){
-    std::cout << "@_" << sc_time_stamp() << "_ " << *(din->dti_data) << std::endl;
+    std::cout << "@_" << sc_time_stamp() << "_ " << std::endl;
+    if(sc_time_stamp() > sc_time(300, SC_NS) && sc_time_stamp() < sc_time(600, SC_NS)){
+      *(dout->dti_ready) = 0;
+    }
+    else
+      *(dout->dti_ready) = 1;
   }
 
   virtual void reset(void) {

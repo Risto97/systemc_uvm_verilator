@@ -22,6 +22,8 @@ class dti_drv :
 public:
   seq_item<sc_bv<32> > item;
   dti_intf *intf;
+  sc_in<bool> clk;
+  sc_in<bool> rst;
 
 
   dti_drv(sc_core::sc_module_name, dti_intf *intf_ext);
@@ -32,7 +34,7 @@ public:
 	tlm_utils::simple_target_socket<dti_drv> soc;
 
 protected:
-	sc_dt::sc_uint<8> val;
+	// sc_dt::sc_uint<32> val;
 
 	typedef tlm::tlm_base_protocol_types::tlm_payload_type pl_t;
 	void b_transport(pl_t&, sc_core::sc_time&);

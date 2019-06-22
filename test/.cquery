@@ -1,5 +1,0 @@
-%clang
-
-# Includes
--I/tools/verilator/include
--I/tools/systemc/include
