@@ -2,9 +2,9 @@ from cascade_classifier.pygears_impl.design import ii_gen
 from cascade_classifier.pygears_impl.scripts.svlib_utils import copy_svlib
 
 from pygears.typing import Queue, Uint
-from pygears.sim.modules import drv
-from pygears.common import shred
-from pygears.svgen import svgen
+from pygears.lib.verif import drv
+from pygears.lib import shred
+from pygears.hdl import hdlgen
 from pygears.conf.registry import bind
 
 from string import Template
@@ -25,6 +25,6 @@ din_t = Queue[Uint[8], 2]
 ii_gen(din=drv(t=din_t, seq=[]), frame_size=(5, 5))
 
 # bind('svgen/debug_intfs', [''])
-bind('svgen/spy_connection_template', signal_spy_connect_t)
-svgen('/ii_gen', outdir="rtl/build", wrapper=True)
+bind('hdl/spy_connection_template', signal_spy_connect_t)
+hdlgen('/ii_gen', outdir="rtl/build", wrapper=True)
 copy_svlib()
