@@ -1,3 +1,3 @@
 
-gearsSystemC Testbench Environment Generator
-===========================================
+Working example for SystemC-UVM and Verilator simulation
+========================================================
