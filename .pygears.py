@@ -6,6 +6,6 @@ package_dir = os.path.dirname(design_dir.__file__)
 
 svlib_dir = os.path.join(
     package_dir, 'gears', 'svlib')
-registry('svgen/sv_paths').append(svlib_dir)
+registry('hdl/include_paths').append(svlib_dir)
 
-bind('svgen/debug_intfs', ['*'])
+bind('hdl/debug_intfs', ['*'])
