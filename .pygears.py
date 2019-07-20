@@ -1,6 +1,6 @@
 import os
 from pygears.conf.registry import registry, bind
-import cascade_classifier.pygears_impl.design as design_dir
+from cascade_classifier.pygears_impl import design as design_dir
 
 package_dir = os.path.dirname(design_dir.__file__)
 
