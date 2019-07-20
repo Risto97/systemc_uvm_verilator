@@ -25,7 +25,7 @@ din_t = Queue[Uint[8], 2]
 
 ii_gen(din=drv(t=din_t, seq=[]), frame_size=(5, 5))
 
-# bind('svgen/debug_intfs', [''])
+bind('hdl/debug_intfs', [''])
 bind('hdl/spy_connection_template', signal_spy_connect_t)
 hdlgen('/ii_gen', outdir="rtl/build", wrapper=True, copy_files=True)
 # print(list_hdl_files('/ii_gen', outdir='rtl/build', language='sv', rtl_only=True))
