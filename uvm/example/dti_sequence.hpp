@@ -1,59 +1,89 @@
 #ifndef DTI_SEQUENCE_HPP_
 #define DTI_SEQUENCE_HPP_
 
+#include <sstream>
+#include <string>
 #include <systemc>
 #include <tlm.h>
 #include <uvm>
 
-template <typename REQ = uvm::uvm_sequence_item, typename RSP = REQ>
-class dti_sequence : public uvm::uvm_sequence<REQ,RSP>
-{
- public:
-  dti_sequence( const std::string& name ) : uvm::uvm_sequence<REQ,RSP>( name )
-  {
-    std::cout << sc_core::sc_time_stamp() << ": constructor " << name << std::endl;
-  }
+#include <iostream>
+#include <vector>
+#include <typeinfo>
 
-  UVM_OBJECT_PARAM_UTILS(dti_sequence<REQ,RSP>);
+#include <csignal>
 
-  void pre_body()
-  {
+template <typename packet_type = uvm::uvm_sequence_item, typename RSP = packet_type>
+class dti_sequence : public uvm::uvm_sequence<packet_type, RSP> {
+public:
+  std::vector<std::vector <unsigned int> > data;
+
+  dti_sequence(const std::string &name) : uvm::uvm_sequence<packet_type, RSP>(name) {}
+
+  UVM_OBJECT_PARAM_UTILS(dti_sequence<packet_type, RSP>);
+
+  void pre_body() {
     // raise objection if started as a root dti_sequence
-    if(this->starting_phase != NULL)
+    if (this->starting_phase != NULL)
       this->starting_phase->raise_objection(this);
+
+    generate_sequence();
   }
 
-  void body()
-  {
-    REQ* req;
-    RSP* rsp;
+  void body() {
+    packet_type *req;
+    RSP *rsp;
+    req = new packet_type();
+    rsp = new RSP();
 
-    UVM_INFO(this->get_name(), "Starting dti_sequence", uvm::UVM_MEDIUM);
+    for (auto j = data.begin(); j != data.end(); ++j) {
+      if(j+1 == data.end())
+        req->data.eot[1] = 1;
 
-    for(int i = 1; i < 10; i++)
-    {
-      req = new REQ();
-      rsp = new RSP();
+      for (auto i = j->begin(); i != j->end(); ++i){
+        unsigned int out_data;
 
-      req->data = i;
-      std::cout << sc_core::sc_time_stamp() << ": " << this->get_full_name() << " start_item value " << i << std::endl;
+        if(i+1 == j->end())
+          req->data.eot[0] = 1;
+        else
+          req->data.eot[0] = 0;
 
-      this->start_item(req);
-      this->finish_item(req);
-      this->get_response(rsp);
+        req->data = *i;
+        std::cout << req << "\n";
+
+        message(*req);
+
+        this->start_item(req);
+        this->finish_item(req);
+        this->get_response(rsp);
+      }
     }
-
-    UVM_INFO(this->get_name(), "Finishing dti_sequence", uvm::UVM_MEDIUM);
+    UVM_INFO(this->get_name(), "Finishing sequence", uvm::UVM_MEDIUM);
   }
 
-  void post_body()
-  {
+  void post_body() {
     // drop objection if started as a root dti_sequence
-    if(this->starting_phase != NULL)
+    if (this->starting_phase != NULL)
       this->starting_phase->drop_objection(this);
   }
 
-};
+  void message(const packet_type &p) {
+    std::stringstream ss;
+    ss << p.data;
+    std::string msg = ss.str();
+    UVM_INFO(" Generated data: \n", msg, uvm::UVM_MEDIUM);
+  }
 
+  void generate_sequence() {
+
+    for(int j = 0; j<5; j++){
+      std::vector<unsigned int> lower;
+      for(int i = 0; i<5; i++){
+        lower.push_back(i+1);
+      }
+      data.push_back(lower);
+    }
+  }
+};
 
 #endif

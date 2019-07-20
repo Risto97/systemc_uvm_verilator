@@ -7,9 +7,7 @@ TOP_MOD = wrap_ii_gen
 SUBMAKE := $(MAKE) --no-print-directory -C
 VERILATOR := verilator
 
-SVLIB = -I/tools/git_repos/pygears/pygears/common/svlib -I/tools/git_repos/pygears/pygears/cookbook/svlib -I/tools/work/cascade_classifier/cascade_classifier/pygears_impl/design/gears/svlib
-#
-VFLAGS = -sc -CFLAGS -fpic -LDFLAGS -Wno-fatal --Mdir $(OJB_DIR) $(SVLIB) -Ibuild/svlib -Ibuild
+VFLAGS = -sc -CFLAGS -fpic -LDFLAGS -Wno-fatal --Mdir $(OJB_DIR) -Ibuild/svlib -Ibuild --pins-sc-uint
 TRACE_FLAGS = --trace -no-trace-params --trace-structs
 
 .PHONY: all

@@ -5,64 +5,47 @@
 #include <tlm.h>
 #include <uvm>
 
-#include "dti_packet.hpp"
 #include "dti_driver.hpp"
-#include "dti_sequencer.hpp"
 #include "dti_monitor.hpp"
+#include "dti_sequencer.hpp"
 
-
-class dti_agent : public uvm::uvm_agent
-{
+template <class vif_type, class packet_type>
+class dti_agent : public uvm::uvm_agent {
 public:
-  dti_sequencer<dti_packet>* sequencer;
-  dti_driver<dti_packet>* driver;
-  dti_monitor* monitor;
+  dti_sequencer<packet_type> *sequencer;
+  dti_driver<packet_type, vif_type> *driver;
+  dti_monitor<vif_type, packet_type> *monitor;
 
   UVM_COMPONENT_UTILS(dti_agent);
 
   dti_agent(uvm::uvm_component_name name)
-    : uvm_agent(name),
-      driver(0),
-      sequencer(0),
-      monitor(0)
-  {
-    std::cout << sc_core::sc_time_stamp() << ": constructor " << name << std::endl;
-  }
-  void build_phase(uvm::uvm_phase& phase)
-  {
-    std::cout << sc_core::sc_time_stamp() << ": build_phase " << name() << std::endl;
+      : uvm_agent(name), driver(0), sequencer(0), monitor(0) {}
 
+  void build_phase(uvm::uvm_phase &phase) {
     uvm::uvm_agent::build_phase(phase);
 
-    if (get_is_active() == uvm::UVM_ACTIVE)
-      {
-        UVM_INFO(get_name(), "is set to UVM_ACTIVE", UVM_NONE);
+    if (get_is_active() == uvm::UVM_ACTIVE) {
+      UVM_INFO(get_name(), "is set to UVM_ACTIVE", uvm::UVM_HIGH);
 
-        sequencer = dti_sequencer<dti_packet>::type_id::create("sequencer", this);
-        assert(sequencer);
+      sequencer =
+          dti_sequencer<packet_type>::type_id::create("sequencer", this);
+      assert(sequencer);
 
-        driver = dti_driver<dti_packet>::type_id::create("driver", this);
-        assert(driver);
-      }
-    else
-      UVM_INFO(get_name(), "is set to UVM_PASSIVE", UVM_NONE);
+      driver =
+          dti_driver<packet_type, vif_type>::type_id::create("driver", this);
+      assert(driver);
+    } else
+      UVM_INFO(get_name(), "is set to UVM_PASSIVE", uvm::UVM_HIGH);
 
-    monitor = dti_monitor::type_id::create("monitor", this);
+    monitor = dti_monitor<vif_type, packet_type>::type_id::create("monitor", this);
     assert(monitor);
   }
 
-  void connect_phase(uvm::uvm_phase& phase)
-  {
-    std::cout << sc_core::sc_time_stamp() << ": connect_phase " << name() << std::endl;
-
-    if (get_is_active() == uvm::UVM_ACTIVE)
-      {
-        driver->seq_item_port.connect(sequencer->seq_item_export);
-      }
+  void connect_phase(uvm::uvm_phase &phase) {
+    if (get_is_active() == uvm::UVM_ACTIVE) {
+      driver->seq_item_port.connect(sequencer->seq_item_export);
+    }
   }
-
-
 };
-
 
 #endif

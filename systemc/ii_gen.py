@@ -6,6 +6,7 @@ from pygears.lib.verif import drv
 from pygears.lib import shred
 from pygears.hdl import hdlgen
 from pygears.conf.registry import bind
+from pygears.synth import list_hdl_files
 
 from string import Template
 signal_spy_connect_t = Template("""
@@ -26,5 +27,7 @@ ii_gen(din=drv(t=din_t, seq=[]), frame_size=(5, 5))
 
 # bind('svgen/debug_intfs', [''])
 bind('hdl/spy_connection_template', signal_spy_connect_t)
-hdlgen('/ii_gen', outdir="rtl/build", wrapper=True)
-copy_svlib()
+hdlgen('/ii_gen', outdir="rtl/build", wrapper=True, copy_files=True)
+# print(list_hdl_files('/ii_gen', outdir='rtl/build', language='sv', rtl_only=True))
+
+# copy_svlib(list_hdl_files('/ii_gen', outdir='rtl/build', language='sv', rtl_only=True))

@@ -1,79 +1,86 @@
 #ifndef DTI_DRIVER_HPP_
 #define DTI_DRIVER_HPP_
 
+#include <iostream>
+#include <sstream>
+#include <string>
 #include <systemc>
 #include <tlm.h>
 #include <uvm>
 
-#include "dti_vif.hpp"
-#include "dti_packet.hpp"
+enum Mode_T { producer = 0, consumer = 1 };
 
-enum Mode_T {producer = 0, consumer = 1};
-
-template <class REQ>
+template <class REQ, class vif_type>
 class dti_driver : public uvm::uvm_driver<REQ>
 {
 public:
-  dti_vif* vif;
+  vif_type *vif;
   Mode_T mode;
 
-  dti_driver( uvm::uvm_component_name name) :
-    uvm::uvm_driver<REQ>(name)
-  {}
+  dti_driver(uvm::uvm_component_name name) : uvm::uvm_driver<REQ>(name) {}
 
-  UVM_COMPONENT_PARAM_UTILS(dti_driver<REQ>);
+  UVM_COMPONENT_PARAM_UTILS(dti_driver<REQ, vif_type>);
 
-  void build_phase(uvm::uvm_phase& phase){
-    std::cout << sc_core::sc_time_stamp() << ": build_phase " << this->name() << std::endl;
+  void build_phase(uvm::uvm_phase &phase) {
 
-    uvm_driver<REQ>::build_phase(phase);
+    uvm::uvm_driver<REQ>::build_phase(phase);
 
-    if(!uvm::uvm_config_db<Mode_T>::get(this, "*", "mode", mode))
+    if (!uvm::uvm_config_db<Mode_T>::get(this, "*", "mode", mode))
       UVM_FATAL(this->name(), "Mode not defined! Simulation aborted!");
   }
 
   void connect_phase(uvm::uvm_phase &phase) {
-    if (!uvm_config_db<dti_vif*>::get(this, "*", "vif", vif))
-      UVM_FATAL(this->name(), "Virtual interface not defined! Simulation aborted!");
+    if (!uvm::uvm_config_db<vif_type *>::get(this, "*", "vif", vif))
+      UVM_FATAL(this->name(),
+                "Virtual interface not defined! Simulation aborted!");
   }
 
-  void main_phase(uvm::uvm_phase& phase)
-  {
-    std::cout << sc_core::sc_time_stamp() << ": " << this->name() << " " << phase.get_name() << "..." << std::endl;
-
+  void main_phase(uvm::uvm_phase &phase) {
     REQ req, rsp;
 
-    while(true) // execute all sequences
-      {
-        this->seq_item_port->get_next_item(req);
+    if (mode == consumer)
+      vif->dti_ready=1;
 
-        if(mode == producer)
-          drive_transfer_producer(req);
-        else if(mode == consumer)
-          drive_transfer_consumer(req);
+    while (true) // execute all sequences
+    {
+      this->seq_item_port->get_next_item(req);
 
-        rsp.set_id_info(req);
-        this->seq_item_port->item_done();
-        this->seq_item_port->put_response(rsp);
+      if (mode == producer){
+        message(req);
+        drive_transfer_producer(req);
       }
-  }
 
-  void drive_transfer_producer(const REQ& p)
-  {
-    std::cout << sc_core::sc_time_stamp() << ": " << this->name() << " sending value " << p.data << std::endl;
-    vif->dti_data.write(p.data);
-    vif->dti_valid = 1;
-    do{
-      sc_core::wait(vif->clk->posedge_event());
+      rsp.set_id_info(req);
+      this->seq_item_port->item_done();
+      this->seq_item_port->put_response(rsp);
     }
-    while(vif->dti_ready == 0);
   }
 
-  void drive_transfer_consumer(const REQ& p)
-  {
-    std::cout << sc_core::sc_time_stamp() << ": " << this->name() << " sending value " << p.data << std::endl;
+  int return_in(int data_in){
+    return data_in;
+  }
+  void drive_transfer_producer(const REQ &p) {
+    unsigned int tmp = p.data;
+    vif->dti_data.write(tmp);
+    vif->dti_valid = 1;
+    do {
+      sc_core::wait(vif->clk->posedge_event());
+    } while (vif->dti_ready == 0);
+
+    if(p.eos())
+      vif->dti_valid = 0;
+  }
+
+  void drive_transfer_consumer(const REQ &p) {
     vif->dti_ready = 1;
     sc_core::wait(vif->clk->posedge_event());
+  }
+
+  void message(const REQ &p) {
+    std::stringstream ss;
+    ss << "0x" << std::hex << p.data;
+    std::string msg = ss.str();
+    UVM_INFO(" Driving data: ", msg, uvm::UVM_HIGH);
   }
 };
 
