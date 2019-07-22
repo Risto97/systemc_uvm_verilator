@@ -56,7 +56,7 @@ public:
 
   void message(const packet_type &p) {
     std::stringstream ss;
-    ss << "0x" << std::hex << p.data;
+    ss << p.data;
     std::string msg = ss.str();
     if(uvm::uvm_report_enabled(uvm::UVM_HIGH, uvm::UVM_INFO, "Test") == true)
       UVM_INFO(" Read data: ", msg, uvm::UVM_MEDIUM);

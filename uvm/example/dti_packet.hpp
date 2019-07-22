@@ -4,6 +4,7 @@
 #include <systemc>
 #include <tlm.h>
 #include <uvm>
+#include <sstream>
 
 #include <iostream>
 
@@ -52,7 +53,7 @@ public:
   //   return true;
   // }
 
-  std::string convert2string() const
+  std::string str() const
   {
     std::ostringstream str;
     str << " data: " << data;

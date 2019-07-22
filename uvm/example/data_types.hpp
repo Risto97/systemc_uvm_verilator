@@ -6,9 +6,9 @@
 #include <string>
 #include <sstream>
 
-template <int LVL> class queue_type {
+template <class dt, int LVL> class queue_type {
 public:
-  unsigned int data;
+  dt data;
   sc_dt::sc_uint<LVL> eot;
 
   queue_type() : data(0), eot(0) {}
@@ -17,11 +17,18 @@ public:
   void operator=(const unsigned int rhs){ data = rhs; }
   void operator=(const queue_type rhs) {
     data = rhs.data;
-    eot = rhs.eot;;
+    eot = rhs.eot;
+  }
+  template<int W>
+  void operator=(const sc_dt::sc_uint<W> rhs) {
+    data = (dt)rhs;
+    eot = rhs >> data.length();
   }
 
-  template<int W>
-  void operator=(const sc_dt::sc_uint<W> rhs) { data = rhs; }
+  void set(const dt data_rhs, const sc_dt::sc_uint<LVL> eot_rhs)const {
+    data = data_rhs;
+    eot = eot_rhs;
+  }
 
   bool eos() const{
     for(int i=0; i<LVL; i++)
@@ -31,11 +38,20 @@ public:
     return true;
   }
 
-  operator unsigned int() const {return data;};
-  operator int() const {return data;};
+  unsigned int pack() const{
+    unsigned int tmp = (unsigned int) data;
+    tmp = (eot << data.length()) | tmp;
+    return tmp;
+  }
 
-  template<int L>
-  friend std::ostream& operator<<(std::ostream& out, const queue_type<L>& q);
+  operator unsigned int() const {
+    return pack();
+  };
+
+  operator int() const {return pack();};
+
+  template<class D, int L>
+  friend std::ostream& operator<<(std::ostream& out, const queue_type<D, L>& q);
 
   std::string str(){
     std::stringstream ss;
@@ -45,20 +61,10 @@ public:
 
 };
 
-template< int L>
-std::ostream& operator<<(std::ostream& out, const queue_type<L>& q){
-  out << "Data: " << q.data << "\n" << "eot: " << q.eot << std::endl;
+template<class D, int L>
+std::ostream& operator<<(std::ostream& out, const queue_type<D, L>& q){
+  out << "Data: " << q.data << " eot: " << q.eot << std::endl;
   return out;
 }
-
-// template <int W>
-// class Uint_type : public sc_dt::sc_uint<W>
-// {
-// public:
-//   Uint_type<W>& operator = (sc_dt::uint_type v)
-//   { sc_uint<W>::operator = (v); return *this; }
-//   // int a;
-//   // sc_dt::sc_uint<width> data;
-// };
 
 #endif /* DATA_TYPES_HPP_ */

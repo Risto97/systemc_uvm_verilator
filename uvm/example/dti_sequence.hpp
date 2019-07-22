@@ -49,7 +49,7 @@ public:
           req->data.eot[0] = 0;
 
         req->data = *i;
-        std::cout << req << "\n";
+        // std::cout << req << "\n";
 
         message(*req);
 
@@ -71,7 +71,7 @@ public:
     std::stringstream ss;
     ss << p.data;
     std::string msg = ss.str();
-    UVM_INFO(" Generated data: \n", msg, uvm::UVM_MEDIUM);
+    UVM_INFO(" Generated data:", msg, uvm::UVM_MEDIUM);
   }
 
   void generate_sequence() {
